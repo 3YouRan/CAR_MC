@@ -173,26 +173,26 @@ int main(void)
   while (1)
   {
 
-      PS2_ReadData();          //获取数据
-      Key1 = PS2_DataKey();       //获取手柄按键数据
-
-      switch (Key1) {
-          case 5:direction=FORWARD;break;//前进方向??
-          case 6:direction=RIGHT;break;//前进方向??
-          case 7:direction=BACK;break;//前进方向??
-          case 8:direction=LEFT;break;//前进方向??
-          case 10:Target_Angle+=-5;
-              break;//L2键使小车顺时针旋转
-          case 9:Target_Angle+=5;
-              break;//R2键使小车逆时针旋转
-          case 13:Target_Speed = 0;break;//速度档位调节，rpm
-          case 14:Target_Speed = 30;break;//速度档位调节，rpm
-          case 15:Target_Speed = 60;break;
-          case 16:Target_Speed=150;break;
-              //default:Target_Speed=0;break;
-      }
-      PS2_ClearData();      //清除手柄按键数据数据
-
+//      PS2_ReadData();          //获取数据
+//      Key1 = PS2_DataKey();       //获取手柄按键数据
+//
+//      switch (Key1) {
+//          case 5:direction=FORWARD;break;//前进方向??
+//          case 6:direction=RIGHT;break;//前进方向??
+//          case 7:direction=BACK;break;//前进方向??
+//          case 8:direction=LEFT;break;//前进方向??
+//          case 10:Target_Angle+=-5;
+//              break;//L2键使小车顺时针旋转
+//          case 9:Target_Angle+=5;
+//              break;//R2键使小车逆时针旋转
+//          case 13:Target_Speed = 0;break;//速度档位调节，rpm
+//          case 14:Target_Speed = 30;break;//速度档位调节，rpm
+//          case 15:Target_Speed = 60;break;
+//          case 16:Target_Speed=150;break;
+//              //default:Target_Speed=0;break;
+//      }
+//      PS2_ClearData();      //清除手柄按键数据数据
+      Target_Speed_A=Target_Speed;
       HAL_Delay(100);
     /* USER CODE END WHILE */
 
@@ -332,7 +332,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             }else if(Target_Angle<-180){
                 Target_Angle=180;
             }
-            //printf("MOTOR:%.2f,%.2f,%d\n", angle_Car ,Target_Angle,rx_byte);
+            printf("MOTOR:%.2f,%.2f,%.2f,%.2f,%.2f\n",pid_speed.kp,pid_speed.ki,pid_speed.kd,Target_Speed,motorA.speed);
             //Target_Speed= Position_PID_Realize(&pid_position, Target_Position, angleNow1);//浣嶇疆锟???
 //            if(flag==-1) {//灏忚溅鍘熷湴鏃嬭浆妯″紡
 //                Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, angle_Car);//瑙掑害锟???
