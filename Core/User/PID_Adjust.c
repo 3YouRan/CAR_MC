@@ -10,7 +10,7 @@ extern PID pid_position;
 extern PID pid_speed;
 
 extern float Target_Speed;
-extern float Target_speed;
+
 //extern float R_Target_Speed;
 extern float Target_Position;
 //extern float R_Target_Position;
@@ -88,7 +88,7 @@ void USART_PID_Adjust(uint8_t Motor_n)
         else if(DataBuff[0]=='D' && DataBuff[1]=='2') // 速度环D
             pid_speed.kd = data_Get;
         else if((DataBuff[0]=='S' && DataBuff[1]=='p') && DataBuff[2]=='e') //目标速度
-            Target_speed = data_Get;
+            Target_Speed = data_Get;
         else if((DataBuff[0]=='P' && DataBuff[1]=='o') && DataBuff[2]=='s') //目标位置
             Target_Position = data_Get;
         else if((DataBuff[0]=='C' && DataBuff[1]=='A') && DataBuff[2]=='M') //摄像头数据

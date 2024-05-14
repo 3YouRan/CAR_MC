@@ -12,9 +12,9 @@
 //#include "control.h"
 
 //PID三个参数的值
-#define KP_speed 2.78
+#define KP_speed 0
 #define KI_speed 0
-#define KD_speed 11.344
+#define KD_speed 0
 #define KP_position 0
 #define KI_position 0
 #define KD_position 0

@@ -18,6 +18,13 @@ project(CAR_ALL_Round C CXX ASM)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
+add_compile_definitions(
+        EMPL_TARGET_STM32F4
+        MPU9250
+        EMPL
+        MPL_LOG_NDEBUG=1
+)
+
 #Uncomment for hardware floating point
 #add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 #add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
@@ -49,11 +56,20 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Core/User Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
+include_directories(Core/Inc Core/User Drivers/STM32F4xx_HAL_Driver/Inc Core/MPU9250
+        Core/DMP/mpl Core/DMP/mllite Core/DMP/eMPL-hal Core/DMP/driver/eMPL Core/DMP/driver/include Core/DMP/driver/stm32L
+        Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F411xE)
 
-file(GLOB_RECURSE SOURCES "Core/*.*" "Core/User" "Drivers/*.*")
+file(GLOB_RECURSE SOURCES "Core/*.*" "Core/User/*.*" "Drivers/*.*"
+    "Core/DMP/mpl/*.*" "Core/DMP/mllite/*.*" "Core/DMP/eMPL-hal/*.*" "Core/MPU9250/*.*"
+        "Core/DMP/driver/eMPL/*.*" "Core/DMP/driver/include/*.*" "Core/DMP/driver/stm32L/*.*"
+)
+
+link_directories(${CMAKE_SOURCE_DIR}/Core/DMP/mpl/)
+
+
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F411CEUX_FLASH.ld)
 
@@ -61,7 +77,8 @@ add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
 
-add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
+add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT} ${CMAKE_SOURCE_DIR}/Core/DMP/mpl/liblibmplmpu.a)
+target_link_libraries(${PROJECT_NAME}.elf ${CMAKE_SOURCE_DIR}/Core/DMP/mpl/liblibmplmpu.a)
 
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.bin)

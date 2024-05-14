@@ -11,8 +11,10 @@ void Motor_Init(){
     HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
     HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
     HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
+    HAL_TIM_Encoder_Start(&htim2,TIM_CHANNEL_ALL);
     __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_UPDATE);
+    __HAL_TIM_ENABLE_IT(&htim2,TIM_IT_UPDATE);
     __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_UPDATE);
 
     //MotorA
@@ -33,21 +35,30 @@ void Motor_Init(){
     motorC.overflowNum = 0;
     motorC.speed = 0;
     motorC.direct = 0;
+    //MotorD
+    motorD.lastCount = 0;
+    motorD.totalCount = 0;
+    motorD.overflowNum = 0;
+    motorD.speed = 0;
+    motorD.direct = 0;
+
 }
-void MotorA_Run(int Val){
+void MotorA_Run(int16_t Val){
     if(Val>=0){
-        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,RESET);
-        HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,SET);
+        HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,1);
+        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,0);
+
         PWMA_SET(Val);
-    }else{
-        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,SET);
-        HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,RESET);
+    }else if(Val<0){
+        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,1);
+        HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,0);
 
         PWMA_SET(-Val);
     }
 
 }
 void MotorB_Run(int16_t Val){
+
     if(Val>=0){
           HAL_GPIO_WritePin(BIN1_GPIO_Port,BIN1_Pin,RESET);
         HAL_GPIO_WritePin(BIN2_GPIO_Port,BIN2_Pin,SET);
@@ -66,6 +77,7 @@ void MotorC_Run(int16_t Val){
     }else  if(Val<0){
         HAL_GPIO_WritePin(CIN1_GPIO_Port,CIN1_Pin,RESET);
         HAL_GPIO_WritePin(CIN2_GPIO_Port,CIN2_Pin,SET);
+
         PWMC_SET(-Val);
     }
 

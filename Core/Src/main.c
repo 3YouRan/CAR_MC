@@ -34,7 +34,7 @@
 #include "PID_Adjust.h"
 #include "Motor.h"
 #include "PS2.h"
-
+#include "mpu9250.h"
 //#include "../User/PS2.h"
 
 /* USER CODE END Includes */
@@ -109,7 +109,11 @@ float camera_data;
 uint8_t Key1;
 //ÔË¶¯·½Ïò
 uint8_t direction;
-
+//mpu9250Êý¾Ý
+float pitch,roll,yaw; 	        //Å·À­½Ç
+short aacx,aacy,aacz;	        //¼ÓËÙ¶È´«¸ÐÆ÷Ô­Ê¼Êý¾Ý
+short gyrox,gyroy,gyroz;        //ÍÓÂÝÒÇÔ­Ê¼Êý¾Ý
+short temp;                     //ÎÂ¶È
 
 
 void Kinematic_Analysis(float Vx,float Vy,float V_angle);
@@ -156,13 +160,20 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
   RetargetInit(&huart1);//ä¸²å£é‡å®šå‘åˆå§‹åŒ–
   Motor_Init();//åˆå§‹åŒ–ç”µæœºç»“æž„ä½“
   PID_Init(&pid_speed,&pid_speed_B,&pid_speed_C,&pid_speed_D,&pid_position,&pid_angle);//åˆå§‹åŒ–pidç»“æž„ï¿???
   HAL_UART_Receive_IT(&huart1, (uint8_t *)&RxBuffer, 1);//æ‰“å¼€ä¸²å£1çš„æŽ¥æ”¶ä¸­ï¿???
-  HAL_TIM_Base_Start_IT(&htim9);//ï¿???å§‹TIM9çš„å®šæ—¶ä¸­ï¿???
-  HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_ALL);
+  HAL_TIM_Base_Start_IT(&htim10);//ï¿???å§‹TIM9çš„å®šæ—¶ä¸­ï¿???
+  HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_1);
+
+  HAL_TIM_PWM_Start(&htim9,TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim9,TIM_CHANNEL_2);
+
+
   PS2_SetInit();
   //HAL_UART_Receive_IT(&huart6, &rx_byte, 1);//æ‰“å¼€ä¸²å£6çš„æŽ¥æ”¶ä¸­ï¿???
 
@@ -193,7 +204,10 @@ int main(void)
 //      }
 //      PS2_ClearData();      //Çå³ýÊÖ±ú°´¼üÊý¾ÝÊý¾Ý
       Target_Speed_A=Target_Speed;
-      HAL_Delay(100);
+      MotorA_Run(200);
+      mpu9250_Read_Data();
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -286,6 +300,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 //·ÖÆµÆ÷
 uint8_t time1=0;
+uint8_t time2=0;
 
 float angleNow1=0;
 float angleNow2=0;
@@ -298,41 +313,51 @@ short encoder_now4=0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-    if (htim == (&htim9))//1ms
+    if (htim == (&htim10))//1ms
     {
 
-        encoder_now1=(short )(__HAL_TIM_GET_COUNTER(ENCODER1));
-        encoder_now2=(short )(__HAL_TIM_GET_COUNTER(ENCODER2));
-        encoder_now3=(short )(__HAL_TIM_GET_COUNTER(ENCODER3));
-        encoder_now4=(short )(__HAL_TIM_GET_COUNTER(ENCODER4));
-        motorA.totalCount+=encoder_now1;//ÀÛ¼ÓÂö³åÊý
-        motorB.totalCount+=encoder_now2;
-        motorC.totalCount+=encoder_now3;
-        motorD.totalCount+=encoder_now4;
-        __HAL_TIM_SET_COUNTER(ENCODER1,0);
-        __HAL_TIM_SET_COUNTER(ENCODER2,0);
-        __HAL_TIM_SET_COUNTER(ENCODER3,0);
-        __HAL_TIM_SET_COUNTER(ENCODER4,0);
 
-        motorA.speed=(float )encoder_now1/(4*20*13)*1000*60; ////é€Ÿåº¦æµ‹é‡rpm
-        motorB.speed=(float )encoder_now2/(4*20*13)*1000*60; //rpm
-        motorC.speed=(float )encoder_now3/(4*20*13)*1000*60; //rpm
-        motorD.speed=(float )encoder_now4/(4*20*13)*1000*60;
-
-        angleNow1= transfer(motorA.totalCount);//×ª»»ÀÛ¼ÆÂö³åÊýÎª½Ç¶È
-        angleNow2= transfer(motorB.totalCount);
-        angleNow3= transfer(motorC.totalCount);
         angleNow4= transfer(motorD.totalCount);
 
         time1++;
-        if (time1==10){//10msè¿›è¡Œï¿???æ¬¡PIDè®¡ç®—
+        time2++;
+        if (time2==2){
+            time2=0;
+            encoder_now1=(short )(__HAL_TIM_GET_COUNTER(ENCODER1));
+            encoder_now2=(short )(__HAL_TIM_GET_COUNTER(ENCODER2));
+            encoder_now3=(short )(__HAL_TIM_GET_COUNTER(ENCODER3));
+            encoder_now4=(short )(__HAL_TIM_GET_COUNTER(ENCODER4));
+            motorA.totalCount+=encoder_now1;//ÀÛ¼ÓÂö³åÊý
+            motorB.totalCount+=encoder_now2;
+            motorC.totalCount+=encoder_now3;
+            motorD.totalCount+=encoder_now4;
+            __HAL_TIM_SET_COUNTER(ENCODER1,0);
+            __HAL_TIM_SET_COUNTER(ENCODER2,0);
+            __HAL_TIM_SET_COUNTER(ENCODER3,0);
+            __HAL_TIM_SET_COUNTER(ENCODER4,0);
+
+            motorA.speed=(float )encoder_now1/(4*20*13)*500*60; ////é€Ÿåº¦æµ‹é‡rpm
+            motorB.speed=(float )encoder_now2/(4*20*13)*500*60; //rpm
+            motorC.speed=(float )encoder_now3/(4*20*13)*500*60; //rpm
+            motorD.speed=(float )encoder_now4/(4*20*13)*500*60;
+
+            angleNow1= transfer(motorA.totalCount);//×ª»»ÀÛ¼ÆÂö³åÊýÎª½Ç¶È
+            angleNow2= transfer(motorB.totalCount);
+            angleNow3= transfer(motorC.totalCount);
+            angleNow4= transfer(motorD.totalCount);
+        }
+        if (time1==5){//10msè¿›è¡Œï¿???æ¬¡PIDè®¡ç®—
             time1=0;
+
+
+            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
             if (Target_Angle>180){
                 Target_Angle=-180;
             }else if(Target_Angle<-180){
                 Target_Angle=180;
             }
-            printf("MOTOR:%.2f,%.2f,%.2f,%.2f,%.2f\n",pid_speed.kp,pid_speed.ki,pid_speed.kd,Target_Speed,motorA.speed);
+            printf("MOTOR:%.2f,%.2f,%.2f,%.2f,%.2f\n",Target_Speed_A,motorA.speed,pid_speed.kp,pid_speed.kd,pid_speed.output);
+
             //Target_Speed= Position_PID_Realize(&pid_position, Target_Position, angleNow1);//ä½ç½®ï¿???
 //            if(flag==-1) {//å°è½¦åŽŸåœ°æ—‹è½¬æ¨¡å¼
 //                Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, angle_Car);//è§’åº¦ï¿???
@@ -346,17 +371,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //                    case BACK:Kinematic_Analysis(0, -Target_Speed, pid_angle.output);break;
 //                }
 //            }
-            Speed_PID_Realize(&pid_speed,Target_Speed_A,motorA.speed);//é€Ÿåº¦ï¿???
-            Speed_PID_Realize(&pid_speed_B,Target_Speed_B,motorB.speed);
-            Speed_PID_Realize(&pid_speed_C,Target_Speed_C,motorC.speed);
-            Speed_PID_Realize(&pid_speed_D,Target_Speed_D,motorD.speed);
+             // Speed_PID_Realize(&pid_speed,Target_Speed_A,motorA.speed);//é€Ÿåº¦ï¿???
+//            Speed_PID_Realize(&pid_speed_B,Target_Speed_B,motorB.speed);
+//            Speed_PID_Realize(&pid_speed_C,Target_Speed_C,motorC.speed);
+//            Speed_PID_Realize(&pid_speed_D,Target_Speed_D,motorD.speed);
 
-            MotorA_Run(pid_speed.output);//PWMæ³¢è¾“ï¿???
-            MotorB_Run(pid_speed_B.output);
-            MotorC_Run(pid_speed_C.output);
-            MotorD_Run(pid_speed_D.output);
+//            MotorA_Run(pid_speed.output);//PWMæ³¢è¾“ï¿???
+//            MotorB_Run(pid_speed_B.output);
+//            MotorC_Run(pid_speed_C.output);
+//            MotorD_Run(pid_speed_D.output);
+            //MotorA_Run(-200);
+//            MotorB_Run(500);
+//            MotorC_Run(500);
+//            MotorD_Run(500);
         }
-
+       // MotorA_Run(pid_speed.output);//PWMæ³¢è¾“ï¿???
 
 
     }
