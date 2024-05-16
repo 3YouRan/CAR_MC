@@ -112,5 +112,18 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 }
 
 /* USER CODE BEGIN 1 */
+/* USER CODE BEGIN 1 */
+uint8_t i2c1_write(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data)
+{
+    int ret=HAL_I2C_Mem_Write(&hi2c1, slave_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, data, length, 0XFFFF);
+    if(ret==HAL_OK)return 0;
+    else return -1;
+}
 
+uint8_t i2c1_read(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data)
+{
+    int ret= HAL_I2C_Mem_Read(&hi2c1, slave_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, data, length, 0XFFFF);
+    if(ret==HAL_OK)return 0;
+    else return -1;
+}
 /* USER CODE END 1 */

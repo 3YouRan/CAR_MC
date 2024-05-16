@@ -3,6 +3,8 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Core/DMP/driver/eMPL/inv_mpu.c" charset="GBK" />
     <file url="file://$PROJECT_DIR$/Core/Src/main.c" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/Core/User/PS2.c" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Core/User/PS2.h" charset="UTF-8" />
     <file url="PROJECT" charset="GBK" />
   </component>
 </project>

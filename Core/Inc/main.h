@@ -69,6 +69,14 @@ void Error_Handler(void);
 #define PWMA_GPIO_Port GPIOA
 #define E4A_Pin GPIO_PIN_5
 #define E4A_GPIO_Port GPIOA
+#define DAT_Pin GPIO_PIN_6
+#define DAT_GPIO_Port GPIOA
+#define CMD_Pin GPIO_PIN_7
+#define CMD_GPIO_Port GPIOA
+#define CS_Pin GPIO_PIN_0
+#define CS_GPIO_Port GPIOB
+#define CLK_Pin GPIO_PIN_1
+#define CLK_GPIO_Port GPIOB
 #define DIN1_Pin GPIO_PIN_2
 #define DIN1_GPIO_Port GPIOB
 #define DIN2_Pin GPIO_PIN_10

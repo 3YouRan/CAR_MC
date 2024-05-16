@@ -25,16 +25,17 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "PS2.h"
+#include "PS2.h"
 #include <string.h>
 #include "math.h"
 #include "retarget.h"
 #include "PID.h"
 #include "PID_Adjust.h"
 #include "Motor.h"
-
 #include "mpu9250.h"
 #include "inv_mpu.h"
+//#include "my_mpu6050.h"
+//#include "inv_mpu.h"
 //#include "../User/PS2.h"
 
 /* USER CODE END Includes */
@@ -114,7 +115,11 @@ float pitch,roll,yaw; 	        //欧拉角
 short aacx,aacy,aacz;	        //加速度传感器原始数据
 short gyrox,gyroy,gyroz;        //陀螺仪原始数据
 short temp;                     //温度
-
+//位置反馈
+float angleNow1=0;
+float angleNow2=0;
+float angleNow3=0;
+float angleNow4=0;
 
 void Kinematic_Analysis(float Vx,float Vy,float V_angle);
 float transfer(int32_t x)//鏄犲皠鍑芥暟锛屽皢鐢垫満缂栫爜鍣ㄧ殑鑴夊啿鏁拌浆鎹负瑙掑害鍊硷紙-180~180锟????
@@ -171,10 +176,8 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_4);
-  MPU9250_Init();
-
-
-  //HAL_UART_Receive_IT(&huart6, &rx_byte, 1);//鎵撳紑涓插彛6鐨勬帴鏀朵腑锟???
+  PS2_SetInit();
+  //mpu_dmp_init();
     uint8_t err = mpu_dmp_init();
     while(err)
     {
@@ -210,6 +213,33 @@ int main(void)
 //      PS2_ClearData();      //清除手柄按键数据数据
       //Target_Speed_C=Target_Speed;
      Kinematic_Analysis(0,0,Target_Angle_Speed);
+//      printf("-- Mpu9250 Project Start -- \r\n");
+//      uint8_t recv = 0x00;
+//      uint8_t i2c_err;
+//      i2c_err = HAL_I2C_Mem_Read(&hi2c1, (0x68<<1), 0x75, I2C_MEMADD_SIZE_8BIT, &recv, 1, 0xfff);
+//      if(recv == 0x71)
+//      {
+//          printf("mpu9250 ID Read: OK（0x71 at 0x75)\r\n");
+//      }
+//      else
+//      {
+//          printf("Err:%d\r\n",i2c_err);
+//      }
+
+//     dmp_getdata();
+//     MPU6050_Read_Temp();
+      err = mpu_mpl_get_data(&pitch,&roll,&yaw);
+      if(err == 0)
+      {
+          temp = MPU_Get_Temperature();	                                     //得到温度值（扩大了100倍）
+          MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	                         //得到加速度传感器数据
+          MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	                         //得到陀螺仪数据
+          //mpu6050_send_data(aacx,aacy,aacz,gyrox,gyroy,gyroz);               //发送加速度+陀螺仪原始数据
+          printf(" yaw = %.6f,%.2f,%.2f,%.2f,%.2f,%.2f\n",-yaw,Target_Position,pid_position.kp,pid_position.ki,pid_position.kd,angleNow1);
+
+      }
+
+      //HAL_Delay(50);
      //MotorC_Run(300);
 
      //MotorA_Run(-500);
@@ -218,16 +248,6 @@ int main(void)
       //HAL_Delay(2000);
 
 
-      err = mpu_mpl_get_data(&pitch,&roll,&yaw);
-      if(err == 0)
-      {
-          temp = MPU_Get_Temperature();	                                     //得到温度值（扩大了100倍）
-          MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	                         //得到加速度传感器数据
-          MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	                         //得到陀螺仪数据
-          //mpu6050_send_data(aacx,aacy,aacz,gyrox,gyroy,gyroz);               //发送加速度+陀螺仪原始数据
-          printf(" yaw = %.6f,%.2f,%.2f,%.2f,%.2f\n",yaw,Target_Angle,pid_angle.kp,pid_angle.ki,pid_angle.kd);
-
-      }
 
 
     /* USER CODE END WHILE */
@@ -325,10 +345,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 uint8_t time1=0;
 uint8_t time2=0;
 
-float angleNow1=0;
-float angleNow2=0;
-float angleNow3=0;
-float angleNow4=0;
+
 short encoder_now1=0;
 short encoder_now2=0;
 short encoder_now3=0;
@@ -364,29 +381,52 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             angleNow2= transfer(motorB.totalCount);
             angleNow3= transfer(motorC.totalCount);
             angleNow4= transfer(motorD.totalCount);
+
         }
         if (time1==5){//10ms杩涜锟???娆ID璁＄畻
+            Angle_PID_Realize(&pid_angle, Target_Angle, -yaw);
+            Key1 = PS2_DataKey();       //获取手柄按键数据
+
+            switch (Key1) {
+                case 5:direction=FORWARD;break;//前进方向??
+                case 6:direction=RIGHT;break;//前进方向??
+                case 7:direction=BACK;break;//前进方向??
+                case 8:direction=LEFT;break;//前进方向??
+                case 10:Target_Angle+=-1;
+                    break;//L2键使小车逆时针旋??90??
+                case 9:Target_Angle+=1;
+                    break;//R2键使小车逆时针旋??90??
+                case 4:Target_Angle=0;
+                case 13:Target_Speed = 0;break;//速度档位调节，rpm
+                case 14:Target_Speed = 60;break;//速度档位调节，rpm
+                case 15:Target_Speed = 180;break;
+                case 16:Target_Speed=300;break;
+                    default:Target_Speed=0;break;
+            }
+            PS2_ClearData();      //清除数据
             time1=0;
+            Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, -yaw);//瑙掑害锟???
             HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
             if (Target_Angle>180){
                 Target_Angle=-180;
             }else if(Target_Angle<-180){
                 Target_Angle=180;
             }
-            //printf("MOTOR:%.2f,%.2f\n",motorA.speed,Target_Speed_A);
+//            printf(" %.2f,%.2f,%.2f,%.2f,%.2f\n",Target_Position,pid_position.kp,pid_position.ki,pid_position.kd,-yaw);
+            //printf("MOTOR:%.2f,%.2f,%.2f,%.2f\n",Target_Angle,pid_angle.kp,pid_angle.ki,pid_angle.kd);
 
-            //Target_Speed= Position_PID_Realize(&pid_position, Target_Position, angleNow1);//浣嶇疆锟???
+            //Target_Speed= Position_PID_Realize(&pid_position, Target_Position, -angleNow1);//浣嶇疆锟???
 //            if(flag==-1) {//灏忚溅鍘熷湴鏃嬭浆妯″紡
-                Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, yaw);//瑙掑害锟???
+
 //
 //            } else if(flag==1){
 //                Angle_PID_Realize(&pid_angle, Target_Angle, angle_Car);//鍩轰簬瑙掑害鐜殑鑸悜瑙掍慨锟???
-//                switch (direction) {//閫氳繃鍏ㄥ悜杞繍鍔ㄦā鍨嬭瀹氫笉鍚岃繍鍔ㄧ姸鎬佷笅灏忚溅涓夌數鏈虹殑閫熷害
-//                    case FORWARD:Kinematic_Analysis(0, Target_Speed, pid_angle.output);break;
-//                    case LEFT:Kinematic_Analysis(-Target_Speed, 0, pid_angle.output);break;
-//                    case RIGHT:Kinematic_Analysis(Target_Speed, 0, pid_angle.output);break;
-//                    case BACK:Kinematic_Analysis(0, -Target_Speed, pid_angle.output);break;
-//                }
+                switch (direction) {//閫氳繃鍏ㄥ悜杞繍鍔ㄦā鍨嬭瀹氫笉鍚岃繍鍔ㄧ姸鎬佷笅灏忚溅涓夌數鏈虹殑閫熷害
+                    case FORWARD:Kinematic_Analysis(Target_Speed,0, pid_angle.output);break;
+                    case LEFT:Kinematic_Analysis(0,Target_Speed,  pid_angle.output);break;
+                    case RIGHT:Kinematic_Analysis(0,-Target_Speed,  pid_angle.output);break;
+                    case BACK:Kinematic_Analysis( -Target_Speed,0, pid_angle.output);break;
+                }
 //            }
             Speed_PID_Realize(&pid_speed,Target_Speed_A,motorA.speed);//閫熷害锟???
             Speed_PID_Realize(&pid_speed_B,Target_Speed_B,motorB.speed);

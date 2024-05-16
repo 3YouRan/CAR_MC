@@ -58,19 +58,19 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_position->maxOutput =10000;
     pid_position->lastErr = 0;
     pid_position->output = 0;
-    pid_position->kp = KP_position;
+    pid_position->kp = 15;
     pid_position->ki = KI_position;
     pid_position->kd = KD_position;
 
     pid_angle->err = 0;
     pid_angle->integral = 0;
     pid_angle->maxIntegral = 50;
-    pid_angle->maxOutput =130;
+    pid_angle->maxOutput =5000;
     pid_angle->lastErr = 0;
     pid_angle->output = 0;
-    pid_angle->kp = 10;
+    pid_angle->kp = 35;
     pid_angle->ki = 0;
-    pid_angle->kd = 0;
+    pid_angle->kd = 15;
 }
 
 /****************************************
@@ -148,7 +148,7 @@ float Angle_PID_Realize(PID* pid, float target, float feedback)//一次PID计算
     }else if(target-feedback<-180){
         feedback-=360;
     }
-    if(pid->err < 0.1 && pid->err > -0.1) pid->err = 0;//pid死区
+    if(pid->err < 1 && pid->err > -1) pid->err = 0;//pid死区
     pid->err = target - feedback;
     pid->integral += pid->err;
 

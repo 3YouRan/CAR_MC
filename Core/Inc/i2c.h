@@ -41,7 +41,10 @@ extern I2C_HandleTypeDef hi2c1;
 void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+/* USER CODE BEGIN Prototypes */
+uint8_t i2c1_write(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data);
 
+uint8_t i2c1_read(unsigned char slave_addr, unsigned char reg_addr, unsigned char length, unsigned char *data);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
