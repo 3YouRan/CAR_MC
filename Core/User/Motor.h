@@ -12,9 +12,9 @@
 #define ENCODER2 &htim3
 #define ENCODER3 &htim4
 #define ENCODER4 &htim2
-#define PWMA_SET(Val) __HAL_TIM_SetCompare(&htim9, TIM_CHANNEL_2, Val); //Val(0~1000)
+#define PWMA_SET(Val) __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_4, Val); //Val(0~1000)
 #define PWMB_SET(Val) __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_2, Val);
-#define PWMC_SET(Val) __HAL_TIM_SetCompare(&htim9, TIM_CHANNEL_1, Val);
+#define PWMC_SET(Val) __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_3, Val);
 #define PWMD_SET(Val) __HAL_TIM_SetCompare(&htim5, TIM_CHANNEL_1, Val); //Val(0~1000)
 
 typedef struct motor{

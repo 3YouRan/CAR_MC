@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -33,8 +32,9 @@
 #include "PID.h"
 #include "PID_Adjust.h"
 #include "Motor.h"
-#include "PS2.h"
+
 #include "mpu9250.h"
+#include "inv_mpu.h"
 //#include "../User/PS2.h"
 
 /* USER CODE END Includes */
@@ -152,15 +152,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
-  MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_TIM5_Init();
   MX_TIM9_Init();
   MX_USART1_UART_Init();
-  MX_ADC1_Init();
   MX_I2C1_Init();
   MX_TIM10_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   RetargetInit(&huart1);//ä¸²å£é‡å®šå‘åˆå§‹åŒ–
   Motor_Init();//åˆå§‹åŒ–ç”µæœºç»“æž„ä½“
@@ -170,13 +169,19 @@ int main(void)
   HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_1);
 
-  HAL_TIM_PWM_Start(&htim9,TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim9,TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim5,TIM_CHANNEL_4);
+  MPU9250_Init();
 
 
-  PS2_SetInit();
   //HAL_UART_Receive_IT(&huart6, &rx_byte, 1);//æ‰“å¼€ä¸²å£6çš„æŽ¥æ”¶ä¸­ï¿???
-
+    uint8_t err = mpu_dmp_init();
+    while(err)
+    {
+        printf("mpu_init_err:%d\r\n",err);
+        err=mpu_dmp_init();
+    }
+    printf("mpu9250 Ok\r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -203,9 +208,26 @@ int main(void)
 //              //default:Target_Speed=0;break;
 //      }
 //      PS2_ClearData();      //Çå³ýÊÖ±ú°´¼üÊý¾ÝÊý¾Ý
-      Target_Speed_A=Target_Speed;
-      MotorA_Run(200);
-      mpu9250_Read_Data();
+      //Target_Speed_C=Target_Speed;
+     Kinematic_Analysis(0,0,Target_Angle_Speed);
+     //MotorC_Run(300);
+
+     //MotorA_Run(-500);
+     //MotorD_Run(200);
+     //MotorB_Run(200);
+      //HAL_Delay(2000);
+
+
+      err = mpu_mpl_get_data(&pitch,&roll,&yaw);
+      if(err == 0)
+      {
+          temp = MPU_Get_Temperature();	                                     //µÃµ½ÎÂ¶ÈÖµ£¨À©´óÁË100±¶£©
+          MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	                         //µÃµ½¼ÓËÙ¶È´«¸ÐÆ÷Êý¾Ý
+          MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	                         //µÃµ½ÍÓÂÝÒÇÊý¾Ý
+          //mpu6050_send_data(aacx,aacy,aacz,gyrox,gyroy,gyroz);               //·¢ËÍ¼ÓËÙ¶È+ÍÓÂÝÒÇÔ­Ê¼Êý¾Ý
+          printf(" yaw = %.6f,%.2f,%.2f,%.2f,%.2f\n",yaw,Target_Angle,pid_angle.kp,pid_angle.ki,pid_angle.kd);
+
+      }
 
 
     /* USER CODE END WHILE */
@@ -281,6 +303,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
         HAL_UART_Receive_IT(&huart1, (uint8_t *)RxBuffer, 1);//æ¯æŽ¥æ”¶ä¸€ä¸ªæ•°æ®ï¼Œå°±æ‰“ï¿???ï¿???æ¬¡ä¸²å£ä¸­æ–­æŽ¥ï¿???
     }
+
 //    if (huart == &huart6) {
 //        // å¤„ç†æŽ¥æ”¶åˆ°çš„æ•°æ®
 //
@@ -315,10 +338,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
     if (htim == (&htim10))//1ms
     {
-
-
-        angleNow4= transfer(motorD.totalCount);
-
         time1++;
         time2++;
         if (time2==2){
@@ -338,7 +357,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
             motorA.speed=(float )encoder_now1/(4*20*13)*500*60; ////é€Ÿåº¦æµ‹é‡rpm
             motorB.speed=(float )encoder_now2/(4*20*13)*500*60; //rpm
-            motorC.speed=(float )encoder_now3/(4*20*13)*500*60; //rpm
+            motorC.speed=(float )encoder_now3/(4*20*13)*500*60;
             motorD.speed=(float )encoder_now4/(4*20*13)*500*60;
 
             angleNow1= transfer(motorA.totalCount);//×ª»»ÀÛ¼ÆÂö³åÊýÎª½Ç¶È
@@ -348,19 +367,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
         if (time1==5){//10msè¿›è¡Œï¿???æ¬¡PIDè®¡ç®—
             time1=0;
-
-
             HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
             if (Target_Angle>180){
                 Target_Angle=-180;
             }else if(Target_Angle<-180){
                 Target_Angle=180;
             }
-            printf("MOTOR:%.2f,%.2f,%.2f,%.2f,%.2f\n",Target_Speed_A,motorA.speed,pid_speed.kp,pid_speed.kd,pid_speed.output);
+            //printf("MOTOR:%.2f,%.2f\n",motorA.speed,Target_Speed_A);
 
             //Target_Speed= Position_PID_Realize(&pid_position, Target_Position, angleNow1);//ä½ç½®ï¿???
 //            if(flag==-1) {//å°è½¦åŽŸåœ°æ—‹è½¬æ¨¡å¼
-//                Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, angle_Car);//è§’åº¦ï¿???
+                Target_Angle_Speed=Angle_PID_Realize(&pid_angle, Target_Angle, yaw);//è§’åº¦ï¿???
 //
 //            } else if(flag==1){
 //                Angle_PID_Realize(&pid_angle, Target_Angle, angle_Car);//åŸºäºŽè§’åº¦çŽ¯çš„èˆªå‘è§’ä¿®ï¿???
@@ -371,15 +388,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //                    case BACK:Kinematic_Analysis(0, -Target_Speed, pid_angle.output);break;
 //                }
 //            }
-             // Speed_PID_Realize(&pid_speed,Target_Speed_A,motorA.speed);//é€Ÿåº¦ï¿???
-//            Speed_PID_Realize(&pid_speed_B,Target_Speed_B,motorB.speed);
-//            Speed_PID_Realize(&pid_speed_C,Target_Speed_C,motorC.speed);
-//            Speed_PID_Realize(&pid_speed_D,Target_Speed_D,motorD.speed);
+            Speed_PID_Realize(&pid_speed,Target_Speed_A,motorA.speed);//é€Ÿåº¦ï¿???
+            Speed_PID_Realize(&pid_speed_B,Target_Speed_B,motorB.speed);
+            Speed_PID_Realize(&pid_speed_C,Target_Speed_C,motorC.speed);
+            Speed_PID_Realize(&pid_speed_D,Target_Speed_D,motorD.speed);
 
-//            MotorA_Run(pid_speed.output);//PWMæ³¢è¾“ï¿???
-//            MotorB_Run(pid_speed_B.output);
-//            MotorC_Run(pid_speed_C.output);
-//            MotorD_Run(pid_speed_D.output);
+            MotorA_Run(pid_speed.output);//PWMæ³¢è¾“ï¿???
+            MotorB_Run(pid_speed_B.output);
+            MotorC_Run(pid_speed_C.output);
+            MotorD_Run(pid_speed_D.output);
             //MotorA_Run(-200);
 //            MotorB_Run(500);
 //            MotorC_Run(500);
@@ -395,7 +412,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
 
-#define RxPLUSRy 0.1
+#define RxPLUSRy 0.12/2+0.16/2
 /**************************************************************************
 Âó¿ËÄÉÄ·ÂÖÄæÔË¶¯Ñ§Ä£ÐÍ
 A B ÎªÇ°Á½ÂÖ
@@ -403,10 +420,10 @@ C D ÎªºóÁ½ÂÖ
 **************************************************************************/
 void Kinematic_Analysis(float Vx,float Vy,float V_angle)
 {
-    Target_Speed_A=Vx-Vy-V_angle*RxPLUSRy;//×óÇ°
-    Target_Speed_B=Vx+Vy+V_angle*RxPLUSRy;//ÓÒÇ°
-    Target_Speed_C=Vx+Vy-V_angle*RxPLUSRy;//×óºó
-    Target_Speed_D=Vx-Vy+V_angle*RxPLUSRy;//ÓÒºó
+    Target_Speed_A=-(Vx-Vy-V_angle*RxPLUSRy);//×óÇ°
+    Target_Speed_B=-(Vx+Vy+V_angle*RxPLUSRy);//ÓÒÇ°
+    Target_Speed_C=-(Vx+Vy-V_angle*RxPLUSRy);//×óºó
+    Target_Speed_D=-(Vx-Vy+V_angle*RxPLUSRy);//ÓÒºó
 }
 
 /* USER CODE END 4 */

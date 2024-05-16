@@ -15,12 +15,12 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_speed->err = 0;
     pid_speed->integral = 0;
     pid_speed->maxIntegral = 5000;
-    pid_speed->maxOutput=10000;
+    pid_speed->maxOutput=1000;
     pid_speed->lastErr = 0;
     pid_speed->output = 0;
-    pid_speed->kp = KP_speed;
+    pid_speed->kp = 0.15;
     pid_speed->ki = KI_speed;
-    pid_speed->kd = KD_speed;
+    pid_speed->kd = 1;
 
     pid_speed_B->err = 0;
     pid_speed_B->integral = 0;
@@ -28,9 +28,9 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_speed_B->maxOutput=10000;
     pid_speed_B->lastErr = 0;
     pid_speed_B->output = 0;
-    pid_speed_B->kp = KP_speed-0.5;
+    pid_speed_B->kp = 0.27;
     pid_speed_B->ki = KI_speed;
-    pid_speed_B->kd = KD_speed;
+    pid_speed_B->kd = 1;
 
     pid_speed_C->err = 0;
     pid_speed_C->integral = 0;
@@ -38,9 +38,9 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_speed_C->maxOutput=10000;
     pid_speed_C->lastErr = 0;
     pid_speed_C->output = 0;
-    pid_speed_C->kp = KP_speed;
+    pid_speed_C->kp = 0.15;
     pid_speed_C->ki = KI_speed;
-    pid_speed_C->kd = KD_speed;
+    pid_speed_C->kd = 1;
 
     pid_speed_D->err = 0;
     pid_speed_D->integral = 0;
@@ -48,9 +48,9 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_speed_D->maxOutput=10000;
     pid_speed_D->lastErr = 0;
     pid_speed_D->output = 0;
-    pid_speed_D->kp = KP_speed;
+    pid_speed_D->kp = 0.27;
     pid_speed_D->ki = KI_speed;
-    pid_speed_D->kd = KD_speed;
+    pid_speed_D->kd = 1;
 
     pid_position->err = 0;
     pid_position->integral = 0;
@@ -68,7 +68,7 @@ void PID_Init(PID *pid_speed,PID *pid_speed_B,PID *pid_speed_C,PID *pid_speed_D,
     pid_angle->maxOutput =130;
     pid_angle->lastErr = 0;
     pid_angle->output = 0;
-    pid_angle->kp = 1.09;
+    pid_angle->kp = 10;
     pid_angle->ki = 0;
     pid_angle->kd = 0;
 }

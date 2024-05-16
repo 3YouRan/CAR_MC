@@ -121,5 +121,5 @@ u8 MPU_Get_Gyroscope(short *gx,short *gy,short *gz);
 u8 MPU_Get_Accelerometer(short *ax,short *ay,short *az);
 u8 MPU_Get_Magnetometer(short *mx,short *my,short *mz);
 
-void mpu9250_Read_Data();
+void mpu9250_Start(void);
 #endif

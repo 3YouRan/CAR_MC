@@ -8,9 +8,11 @@ extern uint8_t DataBuff[200];//指令内容
 extern PID pid_position;
 //extern PID pid_r_speed;
 extern PID pid_speed;
-
+extern PID pid_speed_B;
+extern PID pid_angle;
+extern PID pid_speed_D;
 extern float Target_Speed;
-
+extern float Target_Angle;
 //extern float R_Target_Speed;
 extern float Target_Position;
 //extern float R_Target_Position;
@@ -82,13 +84,13 @@ void USART_PID_Adjust(uint8_t Motor_n)
         else if(DataBuff[0]=='D' && DataBuff[1]=='1') // 位置环D
             pid_position.kd = data_Get;
         else if(DataBuff[0]=='P' && DataBuff[1]=='2') // 速度环P
-            pid_speed.kp = data_Get;
+            pid_angle.kp = data_Get;
         else if(DataBuff[0]=='I' && DataBuff[1]=='2') // 速度环I
-            pid_speed.ki = data_Get;
+            pid_angle.ki = data_Get;
         else if(DataBuff[0]=='D' && DataBuff[1]=='2') // 速度环D
-            pid_speed.kd = data_Get;
+            pid_angle.kd = data_Get;
         else if((DataBuff[0]=='S' && DataBuff[1]=='p') && DataBuff[2]=='e') //目标速度
-            Target_Speed = data_Get;
+            Target_Angle = data_Get;
         else if((DataBuff[0]=='P' && DataBuff[1]=='o') && DataBuff[2]=='s') //目标位置
             Target_Position = data_Get;
         else if((DataBuff[0]=='C' && DataBuff[1]=='A') && DataBuff[2]=='M') //摄像头数据

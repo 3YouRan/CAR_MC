@@ -46,12 +46,12 @@ void Motor_Init(){
 void MotorA_Run(int16_t Val){
     if(Val>=0){
         HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,1);
-        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,0);
+        HAL_GPIO_WritePin(GPIOB,GPIO_PIN_15,0);
 
         PWMA_SET(Val);
-    }else if(Val<0){
-        HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,1);
+    }else if(Val<0){  HAL_GPIO_WritePin(GPIOB,GPIO_PIN_15,1);
         HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,0);
+
 
         PWMA_SET(-Val);
     }
@@ -71,12 +71,13 @@ void MotorB_Run(int16_t Val){
 }
 void MotorC_Run(int16_t Val){
     if(Val>=0){
-        HAL_GPIO_WritePin(CIN1_GPIO_Port,CIN1_Pin,SET);
-        HAL_GPIO_WritePin(CIN2_GPIO_Port,CIN2_Pin,RESET);
-        PWMC_SET(Val);
-    }else  if(Val<0){
+
         HAL_GPIO_WritePin(CIN1_GPIO_Port,CIN1_Pin,RESET);
         HAL_GPIO_WritePin(CIN2_GPIO_Port,CIN2_Pin,SET);
+        PWMC_SET(Val);
+    }else  if(Val<0){
+        HAL_GPIO_WritePin(CIN1_GPIO_Port,CIN1_Pin,SET);
+        HAL_GPIO_WritePin(CIN2_GPIO_Port,CIN2_Pin,RESET);
 
         PWMC_SET(-Val);
     }
@@ -85,12 +86,12 @@ void MotorC_Run(int16_t Val){
 }
 void MotorD_Run(int16_t Val){
     if(Val>=0){
-        HAL_GPIO_WritePin(DIN1_GPIO_Port,DIN1_Pin,SET);
-        HAL_GPIO_WritePin(DIN2_GPIO_Port,DIN2_Pin,RESET);
-        PWMD_SET(Val);
-    }else  if(Val<0){
+
         HAL_GPIO_WritePin(DIN1_GPIO_Port,DIN1_Pin,RESET);
         HAL_GPIO_WritePin(DIN2_GPIO_Port,DIN2_Pin,SET);
+        PWMD_SET(Val);
+    }else  if(Val<0){HAL_GPIO_WritePin(DIN1_GPIO_Port,DIN1_Pin,SET);
+        HAL_GPIO_WritePin(DIN2_GPIO_Port,DIN2_Pin,RESET);
         PWMD_SET(-Val);
     }
 

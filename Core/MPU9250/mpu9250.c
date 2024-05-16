@@ -212,25 +212,29 @@ u8 MPU_Read_Byte(u8 addr,u8 reg)
     HAL_I2C_Mem_Read(&hi2c1, (addr<<1), reg, I2C_MEMADD_SIZE_8BIT, &res, 1, 0xfff);
     return res;  
 }
-
-void mpu9250_Read_Data(void)
+void mpu9250_Start(void)
 {
 
-    uint16_t item = 0;
-    
-    uint8_t err = mpu_dmp_init();
-    while(err)         
-	{   
-        printf("mpu_init_err:%d\r\n",err);
-        err = mpu_dmp_init();
-	}
-    err = mpu_mpl_get_data(&pitch,&roll,&yaw);
-    if(err == 0)
-    {
-        temp = MPU_Get_Temperature();	                                     //得到温度值
-        MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	                         //得到加速度传感器数据
-        MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	                         //得到陀螺仪数据
-        printf("[%05d]roll = %f   pitch = %f   yaw = %f (T = %d)\r\n",item++,roll,pitch,yaw,temp);
-    }
 
- }
+    uint8_t err = mpu_dmp_init();
+    while(err)
+    {
+        printf("mpu_init_err:%d\r\n",err);
+        while(1);
+    }
+    printf("mpu9250 Ok\r\n");
+    while(1)
+    {
+        err = mpu_mpl_get_data(&pitch,&roll,&yaw);
+        if(err == 0)
+        {
+            temp = MPU_Get_Temperature();	                                     //得到温度值（扩大了100倍）
+            MPU_Get_Accelerometer(&aacx,&aacy,&aacz);	                         //得到加速度传感器数据
+            MPU_Get_Gyroscope(&gyrox,&gyroy,&gyroz);	                         //得到陀螺仪数据
+            //mpu6050_send_data(aacx,aacy,aacz,gyrox,gyroy,gyroz);               //发送加速度+陀螺仪原始数据
+            printf("roll = %f   pitch = %f   yaw = %f (T = %d)\r\n",roll,pitch,yaw,temp);
+
+        }
+    }
+}
+

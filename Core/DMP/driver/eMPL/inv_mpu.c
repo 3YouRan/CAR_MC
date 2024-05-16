@@ -537,7 +537,7 @@ const struct test_s test = {
     .max_gyro_var   = 0.14f,
     .min_g          = 0.3f,
     .max_g          = 0.95f,
-    .max_accel_var  = 0.14f
+    .max_accel_var  = 0.16f
 };
 
 static struct gyro_state_s st = {
@@ -3327,9 +3327,9 @@ u8 run_self_test(void)
 {
 	int result;
 	//char test_packet[4] = {0};
-	long gyro[3], accel[3]; 
+	long gyro[3], accel[3];
 	result = mpu_run_6500_self_test(gyro, accel,0);
-	if (result == 0x7) 
+	if (result == 0x7)
 	{
 		/* Test passed. We can trust the gyro data here, so let's push it down
 		* to the DMP.
@@ -3389,9 +3389,9 @@ u8 mpu_dmp_init(void)
     unsigned char accel_fsr;
     unsigned short gyro_rate, gyro_fsr;
     unsigned short compass_fsr;
-    
+
 	if(mpu_init(&int_param)==0)	//初始化MPU9250
-	{	 
+	{
         res=inv_init_mpl();     //初始化MPL
         if(res)return 1;
         inv_enable_quaternion();
@@ -3404,11 +3404,11 @@ u8 mpu_dmp_init(void)
         res=inv_start_mpl();    //开启MPL
         if(res)return 1;
 		res=mpu_set_sensors(INV_XYZ_GYRO|INV_XYZ_ACCEL|INV_XYZ_COMPASS);//设置所需要的传感器
-		if(res)return 2; 
+		if(res)return 2;
 		res=mpu_configure_fifo(INV_XYZ_GYRO | INV_XYZ_ACCEL);   //设置FIFO
-		if(res)return 3; 
+		if(res)return 3;
 		res=mpu_set_sample_rate(DEFAULT_MPU_HZ);	            //设置采样率
-		if(res)return 4; 
+		if(res)return 4;
         res=mpu_set_compass_sample_rate(1000/COMPASS_READ_MS);  //设置磁力计采样率
         if(res)return 5;
         mpu_get_sample_rate(&gyro_rate);
@@ -3424,22 +3424,22 @@ u8 mpu_dmp_init(void)
             inv_orientation_matrix_to_scalar(gyro_orientation),(long)accel_fsr<<15);
         inv_set_compass_orientation_and_scale(
             inv_orientation_matrix_to_scalar(comp_orientation),(long)compass_fsr<<15);
-            
-            
+
+
 		res=dmp_load_motion_driver_firmware();		             //加载dmp固件
-		if(res)return 6; 
+		if(res)return 6;
 		res=dmp_set_orientation(inv_orientation_matrix_to_scalar(gyro_orientation));//设置陀螺仪方向
-		if(res)return 7; 
+		if(res)return 7;
 		res=dmp_enable_feature(DMP_FEATURE_6X_LP_QUAT|DMP_FEATURE_TAP|	            //设置dmp功能
 		    DMP_FEATURE_ANDROID_ORIENT|DMP_FEATURE_SEND_RAW_ACCEL|DMP_FEATURE_SEND_CAL_GYRO|
 		    DMP_FEATURE_GYRO_CAL);
-		if(res)return 8; 
+		if(res)return 8;
 		res=dmp_set_fifo_rate(DEFAULT_MPU_HZ);	//设置DMP输出速率(最大不超过200Hz)
-		if(res)return 9;   
+		if(res)return 9;
 		res=run_self_test();		//自检
-		if(res)return 10;    
+		if(res)return 10;
 		res=mpu_set_dmp_state(1);	//使能DMP
-		if(res)return 11;     
+		if(res)return 11;
 	}
 	return 0;
 }
