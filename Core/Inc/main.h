@@ -59,6 +59,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
+#define CIN1_Pin GPIO_PIN_14
+#define CIN1_GPIO_Port GPIOC
+#define CIN2_Pin GPIO_PIN_15
+#define CIN2_GPIO_Port GPIOC
 #define PWMD_Pin GPIO_PIN_0
 #define PWMD_GPIO_Port GPIOA
 #define PWMB_Pin GPIO_PIN_1
@@ -67,16 +71,18 @@ void Error_Handler(void);
 #define PWMC_GPIO_Port GPIOA
 #define PWMA_Pin GPIO_PIN_3
 #define PWMA_GPIO_Port GPIOA
+#define SENSOR_LL_Pin GPIO_PIN_4
+#define SENSOR_LL_GPIO_Port GPIOA
 #define E4A_Pin GPIO_PIN_5
 #define E4A_GPIO_Port GPIOA
-#define DAT_Pin GPIO_PIN_6
-#define DAT_GPIO_Port GPIOA
-#define CMD_Pin GPIO_PIN_7
-#define CMD_GPIO_Port GPIOA
-#define CS_Pin GPIO_PIN_0
-#define CS_GPIO_Port GPIOB
-#define CLK_Pin GPIO_PIN_1
-#define CLK_GPIO_Port GPIOB
+#define SENSOR_L_Pin GPIO_PIN_6
+#define SENSOR_L_GPIO_Port GPIOA
+#define SENSOR_M_Pin GPIO_PIN_7
+#define SENSOR_M_GPIO_Port GPIOA
+#define SENSOR_R_Pin GPIO_PIN_0
+#define SENSOR_R_GPIO_Port GPIOB
+#define SENSOR_RR_Pin GPIO_PIN_1
+#define SENSOR_RR_GPIO_Port GPIOB
 #define DIN1_Pin GPIO_PIN_2
 #define DIN1_GPIO_Port GPIOB
 #define DIN2_Pin GPIO_PIN_10
@@ -93,10 +99,6 @@ void Error_Handler(void);
 #define E1B_GPIO_Port GPIOA
 #define E1A_Pin GPIO_PIN_9
 #define E1A_GPIO_Port GPIOA
-#define CIN2_Pin GPIO_PIN_11
-#define CIN2_GPIO_Port GPIOA
-#define CIN1_Pin GPIO_PIN_12
-#define CIN1_GPIO_Port GPIOA
 #define E4B_Pin GPIO_PIN_3
 #define E4B_GPIO_Port GPIOB
 #define E2A_Pin GPIO_PIN_4
@@ -107,6 +109,8 @@ void Error_Handler(void);
 #define E3B_GPIO_Port GPIOB
 #define E3A_Pin GPIO_PIN_7
 #define E3A_GPIO_Port GPIOB
+#define BUZZER_Pin GPIO_PIN_9
+#define BUZZER_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -7,6 +7,8 @@ extern uint8_t DataBuff[200];//指令内容
 //extern PID pid_r_position;
 extern PID pid_position;
 //extern PID pid_r_speed;
+extern PID pid_tracking;
+extern float Target_Angle_Speed;
 extern PID pid_speed;
 extern PID pid_speed_B;
 extern PID pid_angle;
@@ -16,8 +18,14 @@ extern float Target_Angle;
 //extern float R_Target_Speed;
 extern float Target_Position;
 //extern float R_Target_Position;
-
-extern float camera_data;
+extern float camera_data_last;
+extern float camera_data[50];
+extern uint8_t camera_flag;
+extern uint8_t rpt_time;
+extern uint8_t camera_data_len;
+extern float camera_data_get;
+extern uint8_t task_flag;
+extern PID pid_Tracking_Color;
 /*
  * 解析出DataBuff中的数据
  * 返回解析得到的数据
@@ -92,9 +100,35 @@ void USART_PID_Adjust(uint8_t Motor_n)
         else if((DataBuff[0]=='S' && DataBuff[1]=='p') && DataBuff[2]=='e') //目标速度
             Target_Angle = data_Get;
         else if((DataBuff[0]=='P' && DataBuff[1]=='o') && DataBuff[2]=='s') //目标位置
-            Target_Position = data_Get;
-        else if((DataBuff[0]=='C' && DataBuff[1]=='A') && DataBuff[2]=='M') //摄像头数据
-            camera_data = data_Get;
+            Target_Position = data_Get*360;
+        else if((DataBuff[0]=='c' && DataBuff[1]=='a') && DataBuff[2]=='n') { //摄像头数据
+            //camera_flag = 1;
+//            camera_data[camera_data_len] /= 2.0f;
+//            camera_data_last = camera_data[camera_data_len++];
+//            camera_data[camera_data_len] = data_Get;
+//
+//            for (uint8_t i = 0; i < 10; i++) {
+//                camera_data_get += camera_data[i];
+//            }
+//            camera_data_get /= camera_data_len;
+//            if (camera_data_len == 10) {
+//                camera_data_len = 0;
+//            }
+            if(task_flag==1) {
+                camera_flag = 1;
+                camera_data_get = data_Get;
+                Target_Angle_Speed = -Tracking_PID_Realize(&pid_Tracking_Color, 0, camera_data_get);
+                //HAL_GPIO_WritePin(LED_GPIO_Port,LED_Pin,RESET);
+            }
+            if(task_flag==2){
+                camera_data_last = camera_data_get;
+                camera_data_get = data_Get;
+                if (camera_data_get == camera_data_last) {
+                    rpt_time++;
+                }
+
+            }
+        }
     }
 //    else if(Motor_n == 0) // 右边电机
 //    {
